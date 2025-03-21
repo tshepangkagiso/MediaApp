@@ -1,0 +1,80 @@
+﻿@page
+@using MediaAppWebApp.Model
+@model MediaListModel
+@{
+    ViewData["Title"] = "Media List";
+}
+
+<h2>Media List</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>File Name</th>
+            <th>File Type</th>
+            <th>Upload Date</th>
+            <th>Preview</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var media in Model.MediaFiles)
+        {
+            <tr>
+                <td>@media.FileName</td>
+                <td>@media.FileType</td>
+                <td>@media.UploadDate.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    @if (MimeTypes.IsImage(media.FileType))
+                    {
+                        <img src="data:@media.FileType;base64,@media.Base64Data"
+                             alt="@media.FileName"
+                             style="max-width: 200px; max-height: 200px;" />
+                    }
+                    else if (MimeTypes.IsVideo(media.FileType))
+                    {
+                        <video controls style="max-width: 300px; max-height: 300px;" autoplay>
+                            <source src="data:@media.FileType;base64,@media.Base64Data" type="@media.FileType">
+                            Your browser does not support the video tag.
+                        </video>
+                    }
+                    else if (MimeTypes.IsAudio(media.FileType))
+                    {
+                        <audio controls autoplay>
+                            <source src="data:@media.FileType;base64,@media.Base64Data" type="@media.FileType">
+                            Your browser does not support the audio tag.
+                        </audio>
+                    }
+                    else if (media.FileType == "application/pdf")
+                    {
+                        <a href="data:@media.FileType;base64,@media.Base64Data" target="_blank">
+                            View PDF
+                        </a>
+                    }
+                    else if (media.FileType == "application/zip")
+                    {
+                        <a href="/api/Media/Download/@media.Id" download="@media.FileName">
+                            Download ZIP
+                        </a>
+                    }
+                    else
+                    {
+                        <p>
+                            Unsupported file type.
+                            <a href="/api/Media/Download/@media.Id" download="@media.FileName">
+                                Download
+                            </a>
+                        </p>
+                    }
+                </td>
+
+                <td>
+                    <a href="https://localhost:7065/api/media/@media.Id" target="_blank" class="btn btn-info">Download</a>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@media.Id" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

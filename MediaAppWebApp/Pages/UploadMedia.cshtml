@@ -1,0 +1,22 @@
+﻿@page
+@model UploadMediaModel
+@{
+    ViewData["Title"] = "Upload Media";
+}
+
+<h2>Upload Media</h2>
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Choose a file:</label>
+        <input type="file" name="file" id="file" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+
+@if (Model.UploadSuccess)
+{
+    <div class="alert alert-success mt-3">
+        File uploaded successfully!
+    </div>
+}
+
