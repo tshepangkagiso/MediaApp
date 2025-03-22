@@ -1,5 +1,6 @@
 ﻿using MediaAppWebApi.Data;
 using MediaAppWebApi.Data.Model;
+using MediaAppWebApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -34,13 +35,16 @@ namespace MediaAppWebApi.Controllers
                 return NotFound();
             }
 
+            // Decompress the file data
+            var decompressedData = CompressionHelper.Decompress(mediaFile.FileData);
+
             var contentType = !string.IsNullOrWhiteSpace(mediaFile.FileType)
                 ? mediaFile.FileType
                 : "application/octet-stream"; // Fallback if file type is missing
 
             Console.WriteLine($"Returning file: {mediaFile.FileName}, Type: {contentType}");
 
-            return File(mediaFile.FileData, contentType, mediaFile.FileName);
+            return File(decompressedData, contentType, mediaFile.FileName);
         }
 
 

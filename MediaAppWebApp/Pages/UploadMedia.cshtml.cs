@@ -1,5 +1,7 @@
+using MediaAppWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http.Headers;
 
 namespace MediaAppWebApp.Pages
 {
@@ -25,15 +27,30 @@ namespace MediaAppWebApp.Pages
                 return Page();
             }
 
-            using (var content = new MultipartFormDataContent())
+            using (var memoryStream = new MemoryStream())
             {
-                content.Add(new StreamContent(File.OpenReadStream()), "file", File.FileName);
-                var response = await _httpClient.PostAsync("https://localhost:7065/api/media", content);
+                // Read the file into a memory stream
+                await File.CopyToAsync(memoryStream);
+                var fileData = memoryStream.ToArray();
 
-                if (response.IsSuccessStatusCode)
-                    UploadSuccess = true;
-                else
-                    ModelState.AddModelError("File", "Error uploading file.");
+                // Compress the file data
+                var compressedData = CompressionHelper.Compress(fileData);
+
+                // Create the HTTP content with the compressed data
+                using (var content = new MultipartFormDataContent())
+                {
+                    var fileContent = new ByteArrayContent(compressedData);
+                    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(File.ContentType);
+                    content.Add(fileContent, "file", File.FileName);
+
+                    // Send the compressed data to the server
+                    var response = await _httpClient.PostAsync("https://localhost:7065/api/media", content);
+
+                    if (response.IsSuccessStatusCode)
+                        UploadSuccess = true;
+                    else
+                        ModelState.AddModelError("File", "Error uploading file.");
+                }
             }
 
             return Page();

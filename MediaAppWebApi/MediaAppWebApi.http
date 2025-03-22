@@ -1,6 +1,6 @@
-@MediaAppWebApi_HostAddress = http://localhost:5089
+@MediaAppWebApi_HostAddress = https://localhost:7065
 
-GET {{MediaAppWebApi_HostAddress}}/weatherforecast/
+GET {{MediaAppWebApi_HostAddress}}/api/media/6
 Accept: application/json
 
 ###

@@ -1,6 +1,6 @@
 using MediaAppWebApp.Model;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MediaAppWebApp.Services;
 
 namespace MediaAppWebApp.Pages
 {
@@ -19,6 +19,7 @@ namespace MediaAppWebApp.Pages
         {
             try
             {
+                // Fetch media files metadata from the server
                 var mediaFiles = await _httpClient.GetFromJsonAsync<List<MediaFile>>("https://localhost:7065/api/media");
                 if (mediaFiles != null)
                 {
@@ -26,7 +27,7 @@ namespace MediaAppWebApp.Pages
                     {
                         string base64Data = null;
 
-                        // If it's an image, retrieve the base64 data
+                        // If it's an image, retrieve the compressed Base64 data
                         if (MimeTypes.IsImage(media.FileType))
                         {
                             var base64Response = await _httpClient.GetFromJsonAsync<MediaBase64Response>(
@@ -35,8 +36,15 @@ namespace MediaAppWebApp.Pages
 
                             if (base64Response != null)
                             {
-                                base64Data = base64Response.Base64Data;
-                                Console.WriteLine($"Retrieved Base64 for {media.FileName}");
+                                // Convert Base64 string to byte array
+                                var compressedData = Convert.FromBase64String(base64Response.Base64Data);
+
+                                // Decompress the byte array using CompressionHelper
+                                var decompressedData = CompressionHelper.Decompress(compressedData);
+
+                                // Convert the decompressed byte array back to Base64
+                                base64Data = Convert.ToBase64String(decompressedData);
+                                Console.WriteLine($"Retrieved and decompressed Base64 for {media.FileName}");
                             }
                             else
                             {
@@ -67,32 +75,31 @@ namespace MediaAppWebApp.Pages
                 Console.WriteLine($"General Error loading media files: {ex.Message}");
             }
         }
-
     }
 
     public class MediaFileViewModel
     {
         public int Id { get; set; }
-        public string FileName { get; set; }
-        public string FileType { get; set; }
+        public string? FileName { get; set; }
+        public string? FileType { get; set; }
         public DateTime UploadDate { get; set; }
-        public string Base64Data { get; set; }
+        public string? Base64Data { get; set; }
     }
 
     public class MediaFile
     {
         public int Id { get; set; }
-        public string FileName { get; set; }
-        public string FileType { get; set; }
-        public byte[] FileData { get; set; } // Store file data as bytes
+        public string? FileName { get; set; }
+        public string? FileType { get; set; }
+        public byte[]? FileData { get; set; } // Store file data as bytes
         public DateTime UploadDate { get; set; }
     }
 
     public class MediaBase64Response
     {
-        public string FileName { get; set; }
-        public string FileType { get; set; }
-        public string Base64Data { get; set; }
+        public string? FileName { get; set; }
+        public string? FileType { get; set; }
+        public string? Base64Data { get; set; }
     }
 
 }
